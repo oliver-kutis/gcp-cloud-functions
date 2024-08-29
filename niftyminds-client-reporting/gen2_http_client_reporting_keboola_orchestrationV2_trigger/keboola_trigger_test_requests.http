@@ -1,0 +1,7 @@
+POST http://127.0.0.1:8080/run 
+Content-Type: application/json
+
+{
+    "client_name": "monkeymum_com",
+    "keboola_orchestration_trigger_run_id": "123456"
+}

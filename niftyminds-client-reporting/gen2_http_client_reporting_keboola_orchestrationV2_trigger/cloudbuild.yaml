@@ -1,0 +1,13 @@
+steps:
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      [
+        "functions",
+        "deploy",
+        "gen2_http_client_reporting_keboola_orchestrationV2_trigger",
+        "--entry-point=hello_http",
+        "--region=europer-west1",
+        "--trigger-http",
+        "--runtime=python312",
+        "--source=gen2-http-client-reporting-keboola-orchestrationV2-trigger",
+      ]
