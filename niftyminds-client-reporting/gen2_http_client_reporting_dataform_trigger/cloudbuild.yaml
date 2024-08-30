@@ -11,6 +11,7 @@ steps:
     - "--trigger-http"
     - "--runtime=python312"
     - "--source=."
+    dir: "niftyminds-client-reporting/gen2_http_client_reporting_dataform_trigger"
 options:
   logging: CLOUD_LOGGING_ONLY
 # steps:
