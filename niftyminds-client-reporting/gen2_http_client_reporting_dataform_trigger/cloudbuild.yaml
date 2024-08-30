@@ -4,7 +4,7 @@ steps:
       [
         "functions",
         "deploy",
-        "cloud_build_gen2_http_client_reporting_dataform_trigger",
+        "gen2_http_client_reporting_dataform_trigger",
         "--gen2",
         "--allow-unauthenticated",
         "--entry-point=run",
