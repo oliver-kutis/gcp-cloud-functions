@@ -12,6 +12,8 @@ steps:
         "--trigger-http",
         "--runtime=python312",
         "--timeout=600",
+        "--memory=2Gi",
+        "--cpu=1",
         "--concurrency=5",
         "--min-instances=0",
         "--max-instances=5",
