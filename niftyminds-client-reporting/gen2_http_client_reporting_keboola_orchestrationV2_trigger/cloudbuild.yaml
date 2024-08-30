@@ -14,3 +14,5 @@ steps:
         "--source=.",
       ]
     dir: "niftyminds-client-reporting/gen2_http_client_reporting_keboola_orchestrationV2_trigger"
+options:
+  logging: CLOUD_LOGGING_ONLY
