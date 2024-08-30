@@ -9,6 +9,8 @@ steps:
     - "--trigger-http"
     - "--runtime=python312"
     - "--source=gen2-http-client-reporting-dataform-trigger"
+options:
+  logging: CLOUD_LOGGING_ONLY
 # steps:
 #   options:
 #     default_logs_bucket_behavior: "CLOUD_LOGGING_ONLY"
