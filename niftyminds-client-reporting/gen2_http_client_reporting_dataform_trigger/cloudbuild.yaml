@@ -1,13 +1,26 @@
 steps:
   - name: "gcr.io/cloud-builders/gcloud"
     args:
-      [
-        "functions",
-        "deploy",
-        "gen2_http_client_reporting_dataform_trigger",
-        "--entry-point=hello_http",
-        "--region=europer-west1",
-        "--trigger-http",
-        "--runtime=python312",
-        "--source=gen2-http-client-reporting-dataform-trigger",
-      ]
+    - "functions"
+    - "deploy"
+    - "gen2_http_client_reporting_dataform_trigger"
+    - "--entry-point=run"
+    - "--region=europe-west1"
+    - "--trigger-http"
+    - "--runtime=python312"
+    - "--source=gen2-http-client-reporting-dataform-trigger"
+# steps:
+#   options:
+#     default_logs_bucket_behavior: "CLOUD_LOGGING_ONLY"
+#   - name: "gcr.io/cloud-builders/gcloud"
+#     args:
+#       [
+#         "functions",
+#         "deploy",
+#         "gen2_http_client_reporting_dataform_trigger",
+#         "--entry-point=hello_http",
+#         "--region=europer-west1",
+#         "--trigger-http",
+#         "--runtime=python312",
+#         "--source=gen2-http-client-reporting-dataform-trigger",
+#       ]
