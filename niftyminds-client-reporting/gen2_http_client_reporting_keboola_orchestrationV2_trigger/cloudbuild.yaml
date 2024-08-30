@@ -4,10 +4,13 @@ steps:
       [
         "functions",
         "deploy",
-        "gen2_http_client_reporting_keboola_orchestrationV2_trigger",
-        "--entry-point=hello_http",
-        "--region=europer-west1",
+        "cloud_build_gen2_http_client_reporting_keboola_orchestrationV2_trigger",
+        "--gen2",
+        "--allow-unauthenticated",
+        "--entry-point=run",
+        "--region=europe-west1",
         "--trigger-http",
         "--runtime=python312",
-        "--source=gen2-http-client-reporting-keboola-orchestrationV2-trigger",
+        "--source=.",
       ]
+    dir: "niftyminds-client-reporting/gen2_http_client_reporting_keboola_orchestrationV2_trigger"
