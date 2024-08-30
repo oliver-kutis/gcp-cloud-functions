@@ -11,6 +11,10 @@ steps:
         "--region=europe-west1",
         "--trigger-http",
         "--runtime=python312",
+        "--timeout=600",
+        "concurrency=5",
+        "--min-instances=0",
+        "--max-instances=5",
         "--source=.",
       ]
     dir: "niftyminds-client-reporting/gen2_http_client_reporting_keboola_orchestrationV2_trigger"
