@@ -5,10 +5,10 @@ steps:
     - "deploy"
     - "cloud_build_gen2_http_client_reporting_dataform_trigger"
     - "--entry-point=run"
-    - "--region=europe-west3"
+    - "--region=europe-west1"
     - "--trigger-http"
     - "--runtime=python312"
-    - "--source=gen2-http-client-reporting-dataform-trigger"
+    - "--source=."
 options:
   logging: CLOUD_LOGGING_ONLY
 # steps:
