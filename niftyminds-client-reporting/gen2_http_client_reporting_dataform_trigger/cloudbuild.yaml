@@ -3,9 +3,9 @@ steps:
     args:
     - "functions"
     - "deploy"
-    - "gen2_http_client_reporting_dataform_trigger"
+    - "cloud_build_gen2_http_client_reporting_dataform_trigger"
     - "--entry-point=run"
-    - "--region=europe-west1"
+    - "--region=europe-west3"
     - "--trigger-http"
     - "--runtime=python312"
     - "--source=gen2-http-client-reporting-dataform-trigger"
