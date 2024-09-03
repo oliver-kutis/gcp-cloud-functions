@@ -159,6 +159,7 @@ def gcp_log(severity, message, additional_log_fields=None):
         **additional_log_fields
     )
 
+    print(json.dumps(log_entry))
     if severity.upper() == "ERROR":
         return ({"error": message, "details": additional_log_fields}, 400)
 

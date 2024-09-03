@@ -10,7 +10,7 @@ DEFAULTS_ARG_VALUES = {
     'git_commitish': "main",
 }
 GLOBAL_LOG_FIELDS = {
-    'pipeline_phase': 'Dataform workflow exection'
+    'pipeline_phase': 'Dataform trigger'
 }
 FUNCTION_ARGS = {
     "required": ['execution_id', 'dataform_repo_name', 'client_name'],
