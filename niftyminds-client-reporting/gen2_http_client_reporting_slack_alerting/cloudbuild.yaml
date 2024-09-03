@@ -18,7 +18,6 @@ steps:
         "--min-instances=0",
         "--max-instances=5",
         "--source=.",
-        "--env-vars-file .env.yaml",
       ]
     dir: "niftyminds-client-reporting/gen2_http_client_reporting_slack_alerting"
 options:
