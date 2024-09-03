@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
     "client_name": "monkeymum_com",
-    "slack_oauth_token": "xoxb-2484115371026-7676674302977-UiE9L3rl2fR4lXAEY5rGhWIb",
+    "slack_oauth_token": "REPLACE_WITH_YOUR_SLACK_OAUTH_TOKEN",
 	"blocks": [
 		{
 			"type": "header",
