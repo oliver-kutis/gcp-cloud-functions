@@ -1,7 +1,6 @@
 steps:
   - name: "gcr.io/cloud-builders/gcloud"
-    args:
-      [
+    args: [
         "functions",
         "deploy",
         "gen2_http_client_reporting_slack_alerting",
@@ -18,6 +17,8 @@ steps:
         "--min-instances=0",
         "--max-instances=5",
         "--source=.",
+        # "--ignore file cloudbuild.yaml",
+        # "--ignore file slack_alerting_test.http˜",
       ]
     dir: "niftyminds-client-reporting/gen2_http_client_reporting_slack_alerting"
 options:
