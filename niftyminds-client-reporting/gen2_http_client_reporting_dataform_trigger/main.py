@@ -3,7 +3,6 @@ import json
 import time
 from google.cloud import logging
 from google.cloud import dataform_v1beta1 as dataform
-# from google.cloud.dataform_v1beta1.types import WorkflowInvocation
 
 DEFAULTS_ARG_VALUES = {
     'project_id': 'niftyminds-client-reporting',
@@ -14,7 +13,7 @@ GLOBAL_LOG_FIELDS = {
     'pipeline_phase': 'Dataform workflow exection'
 }
 FUNCTION_ARGS = {
-    "required": ['dataform_repo_name', 'client_name'],
+    "required": ['execution_id', 'dataform_repo_name', 'client_name'],
     "optional": ['git_commitish',
                  'project_id', 'location']
 }
@@ -37,7 +36,8 @@ def run(request):
 
     gcp_log(
         "NOTICE",
-        f"Function started. Parameters: {request.get_json(silent=True)}",
+        f"----- Function started -----",
+        dict(job_phase="start", input_params=request.get_json(silent=True))
     )
 
     # check request arguments
@@ -69,11 +69,11 @@ def run(request):
     if execution_result[1] == 400:
         return execution_result[0]
     else:
-        message = f"Function finished for client: '{inputs_dict['client_name']}' and repostiory: '{inputs_dict['dataform_repo_name']}'"
+        message = f"----- Function finished for client: '{inputs_dict['client_name']}' and repostiory: '{inputs_dict['dataform_repo_name']}' -----",
         gcp_log(
             "NOTICE",
             message,
-            dict(job_phase="result", status_code=execution_result[1], status=str(
+            dict(job_phase="end", status_code=execution_result[1], status=str(
                 execution_result[0]))
         )
 

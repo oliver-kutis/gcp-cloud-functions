@@ -7,16 +7,14 @@ KEBOOLA_COMPONENT_NAME = "kds-team.app-orchestration-trigger-queue-v2"
 KEBOOLA_MODE = "run"
 DEFAULTS_ARG_VALUES = {
     'keboola_endpoint_url': 'https://queue.north-europe.azure.keboola.com',
-    'keboola_storage_api_token': '21333-3956626-gIqAxVgA9cFit7cnJ5aJrNI5iOFLgJUksFDQgRJ6',
     'keboola_job_max_runtime_seconds': 360,
 }
 GLOBAL_LOG_FIELDS = {
     'pipeline_phase': 'Keboola orchestration trigger'
 }
 FUNCTION_ARGS = {
-    "required": ['keboola_orchestration_trigger_run_id', 'client_name'],
-    "optional": ['keboola_storage_api_token',
-                 'keboola_job_max_runtime_seconds', 'keboola_endpoint_url']
+    "required": ['execution_id', 'keboola_orchestration_trigger_run_id', 'client_name', 'keboola_storage_api_token'],
+    "optional": ['keboola_job_max_runtime_seconds', 'keboola_endpoint_url']
 }
 
 inputs_dict = dict()
@@ -38,7 +36,8 @@ def run(request):
 
     gcp_log(
         "NOTICE",
-        f"Function started. Parameters: {request.get_json(silent=True)}",
+        f"----- Function started -----",
+        dict(job_phase="start", input_params=request.get_json(silent=True))
     )
     check_request_args_result = check_request_args(request)
     # If error in check_request_args, return the error message
@@ -67,30 +66,6 @@ def run(request):
             dict(job_phase="result", status_code=check_job_status_result[1]),
         )
         return (message, check_job_status_result[1])
-
-    # # If error in check_job_status, return the error message
-    # # if results[1] == 400:
-    # #     return results
-    # # else:
-
-    # results_action = results[0]
-    # results_status = results[1]
-    # if results_action == 'Killed' or results_status == 'failed':
-    #     severity = "ERROR"
-    #     status_code = 400
-    # else:
-    #     severity = "NOTICE"
-    #     status_code = 200
-
-    # message = f"Function {results_action.upper()} job ({job_id}) for '{inputs_dict['client_name']}' with latest job status: {results_status}"
-    # gcp_log(
-    #     severity,
-    #     f"Function {results_action.upper()} job ({job_id}) for '{inputs_dict['client_name']}' with latest job status: {results_status}",
-    #     dict(job_phase="result", status_code=status_code),
-    #     True
-    # )
-
-    # return (message, status_code)
 
 
 def check_request_args(request):
@@ -130,7 +105,6 @@ def check_request_args(request):
 
     # Check required args
     for arg in FUNCTION_ARGS['required']:
-        print("-----arg", arg)
         if arg in request_json and request_json[arg] is not None:
             inputs_dict[arg] = request_json[arg]
             if arg == 'client_name':
@@ -138,7 +112,7 @@ def check_request_args(request):
         else:
             return gcp_log(
                 "ERROR",
-                f"The '{arg}' wasn't provided or the value is None. Please enter a value for '{arg}'.",
+                f"The required '{arg}' wasn't provided or the value is None. Please enter a value for '{arg}'.",
                 dict(job_phase=job_phase,
                      job_phase_detail="required_args",
                      arg_details={
@@ -148,10 +122,6 @@ def check_request_args(request):
                      })
             )
 
-        # if arg == 'client_namme':
-        #     GLOBAL_LOG_FIELDS['client_name'] = inputs_dict['client_name']
-        #     print("-----GLOBAL_LOG_FIELDS", GLOBAL_LOG_FIELDS)
-
     GLOBAL_LOG_FIELDS['input_params'] = inputs_dict
     gcp_log(
         "NOTICE",
@@ -159,7 +129,6 @@ def check_request_args(request):
         {"parameters_all": inputs_dict}
     )
 
-    # print("-----inputs_dict", inputs_dict)
     return (inputs_dict, 200)
 
 
@@ -190,15 +159,7 @@ def gcp_log(severity, message, additional_log_fields=None):
         **additional_log_fields
     )
 
-    print(json.dumps(log_entry))
-
     if severity.upper() == "ERROR":
-        # Raise a RuntimeError if the severity is ERROR
-        # This will terminate the function and the error will be visible in the
-        # Cloud Functions logs
-
-        # raise RuntimeError(message)
-        # return [json.dumps({"error": message}), 400]
         return ({"error": message, "details": additional_log_fields}, 400)
 
     return ({"message": message, "details": additional_log_fields}, 200)

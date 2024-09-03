@@ -1,5 +1,8 @@
+# API TOKEN for Keboola
+api_token.txt
+
 secret.json
-*.http
+# *.http
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

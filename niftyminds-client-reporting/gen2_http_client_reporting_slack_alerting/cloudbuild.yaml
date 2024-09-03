@@ -4,14 +4,14 @@ steps:
       [
         "functions",
         "deploy",
-        "gen2_http_client_reporting_keboola_orchestrationV2_trigger",
+        "gen2_http_client_reporting_slack_alerting",
         "--gen2",
         "--allow-unauthenticated",
         "--entry-point=run",
         "--region=europe-west1",
         "--trigger-http",
         "--runtime=python312",
-        "--timeout=600",
+        "--timeout=60",
         "--memory=2Gi",
         "--cpu=1",
         "--concurrency=5",
@@ -20,6 +20,6 @@ steps:
         "--source=.",
         "--env-vars-file .env.yaml",
       ]
-    dir: "niftyminds-client-reporting/gen2_http_client_reporting_keboola_orchestrationV2_trigger"
+    dir: "niftyminds-client-reporting/gen2_http_client_reporting_slack_alerting"
 options:
   logging: CLOUD_LOGGING_ONLY
