@@ -63,7 +63,7 @@ def send_slack_notification(blocks, token):
     client = WebClient(token=token)
     try:
         response = client.chat_postMessage(
-            channel="client-reporting-alerts",
+            channel="#client-reporting-alerts",
             # text=message,
             blocks=blocks,
             username="gcp-cloud-functions",

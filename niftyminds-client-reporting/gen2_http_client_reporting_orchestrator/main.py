@@ -290,7 +290,7 @@ def send_slack_notification(client_name, execution_id, slack_oauth_token, error_
         "blocks": blocks
     })
 
-    return response.json()
+    return response
 
 
 def check_request_args(request):

@@ -5,7 +5,7 @@ Content-Type: application/json
     "client_name": "monkeymum_com",
     "keboola_trigger": {
         "keboola_orchestration_trigger_run_id": "123456",
-        "keboola_storage_api_token": "21333-4100436-Q2d3Stxb63VIurhWImlbOzgggGiqGUNBqx5fvJWC",
+        "keboola_storage_api_token": "TOKEN",
         "keboola_jon_max_runtime_seconds": 120
     },
     "dataform_trigger": {
@@ -13,6 +13,6 @@ Content-Type: application/json
         "git_commitish": "development"
     },
     "slack_notification": {
-        "slack_oauth_token": "xoxb-2484115371026-7676674302977-2oG4pgjwX8VZVYvrY8zR2YNp"
+        "slack_oauth_token": "TOKEN"
     }
 }

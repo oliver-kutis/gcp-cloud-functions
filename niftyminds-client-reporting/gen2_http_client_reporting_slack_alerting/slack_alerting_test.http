@@ -2,8 +2,9 @@ POST http://127.0.0.1:8080/run
 Content-Type: application/json
 
 {
+	"execution_id": "1234",
     "client_name": "monkeymum_com",
-    "slack_oauth_token": "REPLACE_WITH_YOUR_SLACK_OAUTH_TOKEN",
+    "slack_oauth_token": "YOUR_TOKEN",
 	"blocks": [
 		{
 			"type": "header",
