@@ -356,7 +356,8 @@ def kill_job(keboola_endpoint_url, keboola_storage_api_token, keboola_job_id):
             return gcp_log(
                 "ERROR",
                 f"Failed to kill job with ID: {keboola_job_id}. Status Code: {result.status_code}",
-                dict(job_phase="kill_job")
+                dict(job_phase="kill_job",
+                     error_message=f"{result.json().error}")
             )
             # print(
             #     f"Failed to kill job {keboola_job_id}. Status Code: {result.status_code}")

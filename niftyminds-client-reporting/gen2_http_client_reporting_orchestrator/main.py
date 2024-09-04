@@ -83,7 +83,8 @@ def run(request):
     gcp_log(
         "NOTICE",
         f"----- Function started -----",
-        dict(job_phase="start", input_params=request.get_json(silent=True))
+        dict(job_phase="orchestrator", job_phase_detail="start",
+             input_params=request.get_json(silent=True))
     )
 
     # check request arguments
@@ -101,55 +102,134 @@ def run(request):
             inputs_dict[key]['execution_id'] = GLOBAL_LOG_FIELDS['execution_id']
             inputs_dict[key]['client_name'] = inputs_dict['client_name']
 
+    # gcp_log(
+    #     "INFO",
+    #     f"Starting {component_name_map['keboola_trigger']}...",
+    #     dict(
+    #         job_phase=component_name_map['keboola_trigger'],
+    #         job_phase_detail="start"
+    #     )
+    # )
+    # # Call keboola orchestration trigger
+    # keboola_response = requests.post(
+    #     CLOUD_FUNCTION_URLS["keboola_trigger"], json=inputs_dict['keboola_trigger'])
+
+    # # keboola_response_body = keboola_response.json()
+    # if keboola_response.status_code == 400:
+    #     component_error_details = {
+    #         **keboola_response.json()['details'],
+    #         **{"error": keboola_response.json()['error']},
+    #     }
+    #     message = f"Error in {component_name_map['keboola_trigger']} for {inputs_dict['client_name']}; Execution ID: {GLOBAL_LOG_FIELDS['execution_id']}"
+    #     slack_response = send_slack_notification(
+    #         client_name=inputs_dict['client_name'],
+    #         execution_id=GLOBAL_LOG_FIELDS['execution_id'],
+    #         slack_oauth_token=inputs_dict['slack_notification']['slack_oauth_token'],
+    #         error_params={
+    #             "start_datetime": start_datetime,
+    #             "pipeline_component": component_name_map['keboola_trigger'],
+    #             "job_phase": component_error_details['job_phase'],
+    #             "component_url": CLOUD_FUNCTION_URLS['keboola_trigger'],
+    #             "error_type": "Component error",
+    #             "message": message,
+    #             "message_detail": keboola_response.json()['error'],
+    #             "gcp_warnerr_logs_url": build_logs_url(
+    #                 base_logs_url,
+    #                 GLOBAL_LOG_FIELDS['execution_id'],
+    #                 component_name_map['keboola_trigger'],
+    #                 project,
+    #                 False
+    #             ),
+    #             "gcp_full_logs_url": build_logs_url(
+    #                 base_logs_url,
+    #                 GLOBAL_LOG_FIELDS['execution_id'],
+    #                 component_name_map['keboola_trigger'],
+    #                 project,
+    #                 True
+    #             )
+
+    #         }
+    #     )
+
+    #     if slack_response.status_code == 400:
+    #         gcp_log(
+    #             "WARNING",
+    #             "Sending slack message failed",
+    #             {
+    #                 "component_error_details": {
+    #                     **slack_response.json()['details'],
+    #                     **{"error": slack_response.json()['error']},
+    #                 },
+    #                 "job_phase": component_name_map['keboola_trigger'],
+    #                 "job_phase_detail": "send_slack_notification"
+    #             }
+    #         )
+
+    #     return gcp_log(
+    #         "ERROR",
+    #         message,
+    #         {
+    #             "component_error_details": component_error_details,
+    #             "job_phase": component_name_map['keboola_trigger'],
+    #             "job_phase_detail": "run_component"
+    #         }
+    #     )
+    # else:
+    #     gcp_log(
+    #         "NOTICE",
+    #         f"Finished {component_name_map['keboola_trigger']}; Execution ID: {GLOBAL_LOG_FIELDS['execution_id']}",
+    #         dict(
+    #             job_phase=component_name_map['keboola_trigger'],
+    #             job_phase_detail="finish"
+    #         )
+    #     )
     gcp_log(
         "INFO",
-        f"Starting {component_name_map['keboola_trigger']}...",
+        f"Starting {component_name_map['dataform_trigger']}...",
         dict(
-            job_phase="component_name_map['keboola_trigger']",
+            job_phase=component_name_map['dataform_trigger'],
             job_phase_detail="start"
         )
     )
-    # # Call keboola orchestration trigger
-    keboola_response = requests.post(
-        CLOUD_FUNCTION_URLS["keboola_trigger"], json=inputs_dict['keboola_trigger'])
+    dataform_response = requests.post(
+        CLOUD_FUNCTION_URLS['dataform_trigger'], json=inputs_dict['dataform_trigger']
+    )
 
-    # keboola_response_body = keboola_response.json()
-    if keboola_response.status_code == 400:
+    if dataform_response.status_code == 400:
         component_error_details = {
-            **keboola_response.json()['details'],
-            **{"error": keboola_response.json()['error']},
+            **dataform_response.json()['details'],
+            **{"error": dataform_response.json()['error']},
         }
-        message = f"Error in {component_name_map['keboola_trigger']} for {inputs_dict['client_name']}; Execution ID: {GLOBAL_LOG_FIELDS['execution_id']}"
+        message = f"Error in {component_name_map['dataform_trigger']} for {inputs_dict['client_name']}; Execution ID: {GLOBAL_LOG_FIELDS['execution_id']}"
         slack_response = send_slack_notification(
             client_name=inputs_dict['client_name'],
             execution_id=GLOBAL_LOG_FIELDS['execution_id'],
             slack_oauth_token=inputs_dict['slack_notification']['slack_oauth_token'],
             error_params={
                 "start_datetime": start_datetime,
-                "pipeline_component": component_name_map['keboola_trigger'],
+                "pipeline_component": component_name_map['dataform_trigger'],
                 "job_phase": component_error_details['job_phase'],
-                "component_url": CLOUD_FUNCTION_URLS['keboola_trigger'],
+                "component_url": CLOUD_FUNCTION_URLS['dataform_trigger'],
                 "error_type": "Component error",
                 "message": message,
-                "message_detail": keboola_response.json()['error'],
+                "message_detail": dataform_response.json()['error'],
                 "gcp_warnerr_logs_url": build_logs_url(
                     base_logs_url,
                     GLOBAL_LOG_FIELDS['execution_id'],
-                    component_name_map['keboola_trigger'],
+                    component_name_map['dataform_trigger'],
                     project,
                     False
                 ),
                 "gcp_full_logs_url": build_logs_url(
                     base_logs_url,
                     GLOBAL_LOG_FIELDS['execution_id'],
-                    component_name_map['keboola_trigger'],
+                    component_name_map['dataform_trigger'],
                     project,
                     True
                 )
 
             }
         )
-
         if slack_response.status_code == 400:
             gcp_log(
                 "WARNING",
@@ -159,45 +239,43 @@ def run(request):
                         **slack_response.json()['details'],
                         **{"error": slack_response.json()['error']},
                     },
-                    "job_phase": component_name_map['keboola_trigger'],
+                    "job_phase": component_name_map['dataform_trigger'],
                     "job_phase_detail": "send_slack_notification"
                 }
             )
 
-        return gcp_log(
-            "ERROR",
-            message,
-            {
-                "component_error_details": component_error_details,
-                "job_phase": component_name_map['keboola_trigger'],
-                "job_phase_detail": "run_component"
-            }
+            return gcp_log(
+                "ERROR",
+                message,
+                {
+                    "component_error_details": component_error_details,
+                    "job_phase": component_name_map['dataform_trigger'],
+                    "job_phase_detail": "run_component"
+                }
+            )
+    else:
+        gcp_log(
+            "NOTICE",
+            f"Finished {component_name_map['dataform_trigger']}; Execution ID: {GLOBAL_LOG_FIELDS['execution_id']}",
+            dict(
+                job_phase=component_name_map['dataform_trigger'],
+                job_phase_detail="finish"
+            )
         )
 
-    # print("---- Keboola ----")
-    # print(
-    #     f"Status code: {keboola_response.status_code}, Status: {keboola_response}")
-    # print(keboola_response.json())
-    # if keboola.status_code == 400:
-    # send_slack_notification(
-    #     client_name=inputs_dict['client_name'],
-    #     execution_id=GLOBAL_LOG_FIELDS['execution_id'],
-    #     slack_oauth_token=inputs_dict.get(
-    #         'slack_notification', {}).get('slack_oauth_token', None),
-    #     error_params={
-    #         "pipeline_component": component_name_map['keboola_trigger'],
-    #     }
-    # )
+    # print(dataform.json())
+    # print(dataform.status_code)
+    # print(dataform.json()['error'])
 
-    dataform = requests.post(
-        CLOUD_FUNCTION_URLS['dataform_trigger'], json=inputs_dict['dataform_trigger']
+    gcp_log(
+        "NOTICE",
+        f"Orchestrator finished for client: '{inputs_dict['client_name']}'",
+        dict(
+            job_phase="orchestrator",
+            job_phase_detail="finish"
+        )
     )
-
-    print(dataform.json())
-    print(dataform.status_code)
-    print(dataform.json()['error'])
-
-    return dataform
+    return
     # # check the result of the incovation
     # execution_result = check_workflow_execution_result(
     #     invocation_name, inputs_dict)
