@@ -104,8 +104,10 @@ def run(request):
     gcp_log(
         "INFO",
         f"Starting {component_name_map['keboola_trigger']}...",
-        job_phase="component_name_map['keboola_trigger']",
-        job_phase_detail="start"
+        dict(
+            job_phase="component_name_map['keboola_trigger']",
+            job_phase_detail="start"
+        )
     )
     # # Call keboola orchestration trigger
     keboola_response = requests.post(

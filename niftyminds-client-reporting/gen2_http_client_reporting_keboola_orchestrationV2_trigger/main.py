@@ -60,7 +60,7 @@ def run(request):
     if check_job_status_result[1] == 400:
         return check_job_status_result
     else:
-        message = f"Function finished. {check_job_status_result[0]} for '{inputs_dict['client_name']}'",
+        message = f"Function finished. {check_job_status_result[0]} for '{inputs_dict['client_name']}'"
         gcp_log(
             "NOTICE",
             message,
