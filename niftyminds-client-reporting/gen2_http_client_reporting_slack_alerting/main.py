@@ -132,8 +132,8 @@ def check_request_args(request):
     for arg in FUNCTION_ARGS['required']:
         if arg in request_json and request_json[arg] is not None:
             inputs_dict[arg] = request_json[arg]
-            if arg == 'client_name':
-                GLOBAL_LOG_FIELDS['client_name'] = request_json['client_name']
+            if arg in ['client_name', 'execution_id']:
+                GLOBAL_LOG_FIELDS[arg] = request_json[arg]
         else:
             return gcp_log(
                 "ERROR",

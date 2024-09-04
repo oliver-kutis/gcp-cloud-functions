@@ -56,10 +56,11 @@ def run(request):
 
     check_job_status_result = check_job_status(inputs_dict['keboola_endpoint_url'], inputs_dict['keboola_storage_api_token'], job_id,
                                                inputs_dict['keboola_job_max_runtime_seconds'])
+
     if check_job_status_result[1] == 400:
         return check_job_status_result
     else:
-        message = f"Function finished. {check_job_status_result[0]} for '{inputs_dict['client_name']}'.",
+        message = f"Function finished. {check_job_status_result[0]} for '{inputs_dict['client_name']}'",
         gcp_log(
             "NOTICE",
             message,
@@ -107,8 +108,8 @@ def check_request_args(request):
     for arg in FUNCTION_ARGS['required']:
         if arg in request_json and request_json[arg] is not None:
             inputs_dict[arg] = request_json[arg]
-            if arg == 'client_name':
-                GLOBAL_LOG_FIELDS['client_name'] = request_json['client_name']
+            if arg in ['client_name', 'execution_id']:
+                GLOBAL_LOG_FIELDS[arg] = request_json[arg]
         else:
             return gcp_log(
                 "ERROR",
@@ -160,6 +161,7 @@ def gcp_log(severity, message, additional_log_fields=None):
     )
 
     print(json.dumps(log_entry))
+
     if severity.upper() == "ERROR":
         return ({"error": message, "details": additional_log_fields}, 400)
 
@@ -277,16 +279,21 @@ def check_job_status(keboola_endpoint_url, keboola_storage_api_token, keboola_jo
                 )
             if job_status in ["failed", "success"]:
                 if job_status == "failed":
-                    severity = "ERROR"
+                    return gcp_log(
+                        "ERROR",
+                        f"The job with id: {keboola_job_id} finished with status: {job_status}.",
+                        dict(job_phase=job_phase,
+                             job_phase_detail="job_finished", job_status=job_status)
+                    )
                 else:
                     severity = "INFO"
 
-                return gcp_log(
-                    severity,
-                    f"The job with id: {keboola_job_id} finished with status: {job_status}.",
-                    dict(job_phase=job_phase,
-                         job_phase_detail="job_finished", job_status=job_status)
-                )
+                    gcp_log(
+                        "INFO",
+                        f"The job with id: {keboola_job_id} finished with status: {job_status}.",
+                        dict(job_phase=job_phase,
+                             job_phase_detail="job_finished", job_status=job_status)
+                    )
                 break
 
             time.sleep(10)

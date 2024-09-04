@@ -3,6 +3,7 @@ import time
 import requests
 import urllib.parse
 import json
+import datetime
 
 CLOUD_FUNCTION_URLS = {
     "keboola_trigger": "https://europe-west1-niftyminds-client-reporting.cloudfunctions.net/gen2_http_client_reporting_keboola_orchestrationV2_trigger",
@@ -62,6 +63,7 @@ def run(request):
     or times out, the function returns "Bad".
     """
     base_logs_url = "https://console.cloud.google.com/logs/query"
+    start_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     inputs_dict = dict()
     component_name_map = dict()
     for key in FUNCTION_ARGS:
@@ -97,20 +99,35 @@ def run(request):
     for key in FUNCTION_ARGS:
         if key != "global":
             inputs_dict[key]['execution_id'] = GLOBAL_LOG_FIELDS['execution_id']
+            inputs_dict[key]['client_name'] = inputs_dict['client_name']
 
+    gcp_log(
+        "INFO",
+        f"Starting {component_name_map['keboola_trigger']}...",
+        job_phase="component_name_map['keboola_trigger']",
+        job_phase_detail="start"
+    )
     # # Call keboola orchestration trigger
     keboola_response = requests.post(
         CLOUD_FUNCTION_URLS["keboola_trigger"], json=inputs_dict['keboola_trigger'])
+
     # keboola_response_body = keboola_response.json()
     if keboola_response.status_code == 400:
+        component_error_details = {
+            **keboola_response.json()['details'],
+            **{"error": keboola_response.json()['error']},
+        }
         message = f"Error in {component_name_map['keboola_trigger']} for {inputs_dict['client_name']}; Execution ID: {GLOBAL_LOG_FIELDS['execution_id']}"
         slack_response = send_slack_notification(
             client_name=inputs_dict['client_name'],
             execution_id=GLOBAL_LOG_FIELDS['execution_id'],
             slack_oauth_token=inputs_dict['slack_notification']['slack_oauth_token'],
             error_params={
-                "pipeline_component": keboola_response.json()['error'],
+                "start_datetime": start_datetime,
+                "pipeline_component": component_name_map['keboola_trigger'],
+                "job_phase": component_error_details['job_phase'],
                 "component_url": CLOUD_FUNCTION_URLS['keboola_trigger'],
+                "error_type": "Component error",
                 "message": message,
                 "message_detail": keboola_response.json()['error'],
                 "gcp_warnerr_logs_url": build_logs_url(
@@ -130,13 +147,28 @@ def run(request):
 
             }
         )
-        print(slack_response)
+
+        if slack_response.status_code == 400:
+            gcp_log(
+                "WARNING",
+                "Sending slack message failed",
+                {
+                    "component_error_details": {
+                        **slack_response.json()['details'],
+                        **{"error": slack_response.json()['error']},
+                    },
+                    "job_phase": component_name_map['keboola_trigger'],
+                    "job_phase_detail": "send_slack_notification"
+                }
+            )
+
         return gcp_log(
             "ERROR",
             message,
             {
-                "error_message": keboola_response.json()['error'],
-                "details": keboola_response.json()['details']
+                "component_error_details": component_error_details,
+                "job_phase": component_name_map['keboola_trigger'],
+                "job_phase_detail": "run_component"
             }
         )
 
@@ -219,11 +251,24 @@ def build_logs_url(base_logs_url, execution_id, pipeline_phase, project, complet
 def send_slack_notification(client_name, execution_id, slack_oauth_token, error_params):
     blocks = [
         {
-            "type": "header",
+            "type": "section",
             "text": {
-                "type": "plain_text",
-                "text": "🚨 Error: Orchestration failed"
-            },
+                "type": "mrkdwn",
+                "text": f"[{error_params['start_datetime']}] 🚨 {error_params['message']}"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "⚙️ *Basic information*"
+            }
+        },
+        {
+            "type": "divider"
         },
         {
             "type": "section",
@@ -243,52 +288,91 @@ def send_slack_notification(client_name, execution_id, slack_oauth_token, error_
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Pipeline component:* {error_params['pipeline_component']}\n"
+                "text": f"*Pipeline component:* {error_params['pipeline_component']}"
             }
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Error message:* {error_params['message']}\n"
+                "text": f"*Pipeline phase:* {error_params['pipeline_component']}"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"❌ *Error details*"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*Error type:* {error_params['error_type']}"
             }
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Error message (detail):* {error_params['message_detail']}\n"
+                "text": f"*Error message:* {error_params['message_detail']}\n"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"🔗 *Links*"
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"<{error_params['component_url']}|*Link to failed component*>"
             }
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"<{error_params['component_url']}|*Link to failed component*> *Link to failed component:* {error_params['message']}"
+                "text": f"<{error_params['gcp_warnerr_logs_url']}|*Link to logs in GCP (warning and higher)*>"
             }
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"<{error_params['gcp_warnerr_logs_url']}>|*Link to logs in GCP (warning and higher)*"
-            }
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"<{error_params['gcp_full_logs_url']}>|*Link to _all_ logs for the execution in GCP*"
+                "text": f"<{error_params['gcp_full_logs_url']}|*Link to _all_ logs for the execution in GCP*>\n\n"
             }
         }
     ]
 
-    response = requests.post(CLOUD_FUNCTION_URLS['slack_notification'], {
-        "client_name": client_name,
-        "execution_id": execution_id,
-        "slack_oauth_token": slack_oauth_token,
-        "blocks": blocks
-    })
+    response = requests.post(
+        CLOUD_FUNCTION_URLS['slack_notification'],
+        json={
+            "client_name": client_name,
+            "execution_id": execution_id,
+            "slack_oauth_token": slack_oauth_token,
+            "blocks": blocks
+        },
+        headers={
+            "Content-Type": "application/json"
+        }
+    )
 
     return response
 
@@ -296,7 +380,8 @@ def send_slack_notification(client_name, execution_id, slack_oauth_token, error_
 def check_request_args(request):
     request_json = request.get_json(silent=False)
     inputs_dict = dict()
-    additional_log_fields = dict(job_phase="check_request_args")
+    additional_log_fields = dict(
+        job_phase="check_request_args", error_type="Orchestator error")
 
     # Log that the check of args started
     gcp_log(
@@ -432,7 +517,7 @@ def gcp_log(severity, message, additional_log_fields=None):
     log_entry = dict(
         severity=severity.upper(),
         message=message,
-        # pipeline_component="Dataform trigger",
+        # pipeline_component="Dataform orchestrator",
         **additional_log_fields
     )
 
