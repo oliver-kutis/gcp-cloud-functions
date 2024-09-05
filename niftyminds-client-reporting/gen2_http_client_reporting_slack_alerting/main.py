@@ -76,7 +76,7 @@ def send_slack_notification(blocks, token):
                 dict(job_phase="send_slack_notification",
                      response_from_api=f"{response.data}")
             )
-            return (esponse.data, 200)
+            return (response.data, 200)
         else:
             return gcp_log(
                 "ERROR",

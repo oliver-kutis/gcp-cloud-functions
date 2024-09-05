@@ -276,7 +276,7 @@ def run(request):
 
     return gcp_log(
         "NOTICE",
-        f"Orchestrator finished for client: '{inputs_dict['client_name']}'; Execution ID: {GLOBAL_LOG_FIELDS['execution_id']}",
+        f"----- Orchestrator finished for client: '{inputs_dict['client_name']}'; Execution ID: {GLOBAL_LOG_FIELDS['execution_id']} -----",
         dict(
             job_phase="orchestrator",
             job_phase_detail="finish"
@@ -472,7 +472,7 @@ def check_request_args(request):
 
     # Log that the check of args started
     gcp_log(
-        "INFO",
+        "Notice",
         "Checking the request args...",
         dict(job_phase="check_request_args")
     )
@@ -510,6 +510,12 @@ def check_request_args(request):
             )
         else:
             inputs_dict[key] = request_json[key]
+
+        gcp_log(
+            "INFO",
+            f"Finished: Checking request args for {key}.",
+            additional_log_fields
+        )
 
     #     # Check optional args
     #     if 'optional' not in args:
@@ -570,12 +576,12 @@ def check_request_args(request):
     #         additional_log_fields
     #     )
 
-    # GLOBAL_LOG_FIELDS['input_params'] = inputs_dict
-    # gcp_log(
-    #     "NOTICE",
-    #     f"All request arguments checked. Parameters: {inputs_dict}",
-    #     {"parameters_all": inputs_dict}
-    # )
+    GLOBAL_LOG_FIELDS['input_params'] = inputs_dict
+    gcp_log(
+        "NOTICE",
+        f"All request arguments checked. Parameters: {inputs_dict}",
+        {"parameters_all": inputs_dict}
+    )
 
     # print("-----inputs_dict", inputs_dict)
     return (inputs_dict, 200)

@@ -236,6 +236,7 @@ def create_job(keboola_endpoint_url, keboola_storage_api_token, keboola_orchestr
 
 def check_job_status(keboola_endpoint_url, keboola_storage_api_token, keboola_job_id, keboola_job_max_runtime_seconds):
     start_time = time.time()
+    elapsed_time = 0
     job_status = None
     job_phase = "check_job_status"
 
@@ -246,9 +247,7 @@ def check_job_status(keboola_endpoint_url, keboola_storage_api_token, keboola_jo
     )
 
     try:
-        while time.time() - start_time < keboola_job_max_runtime_seconds:
-            elapsed_time = round(time.time() - start_time, 2)
-
+        while elapsed_time < keboola_job_max_runtime_seconds:
             result = requests.get(
                 url=f"{keboola_endpoint_url}/jobs/{keboola_job_id}",
                 headers={
@@ -259,12 +258,12 @@ def check_job_status(keboola_endpoint_url, keboola_storage_api_token, keboola_jo
             job_status = result_json.get("status")
 
             # Print the time elapsed every 30 seconds
-            if int(elapsed_time) % 30 == 0 and int(elapsed_time) != 0:
-                gcp_log(
-                    "INFO",
-                    f"Job ({keboola_job_id}) status check... Time elapsed: {elapsed_time} seconds.",
-                    dict(job_phase=job_phase, details=result_json)
-                )
+            # if (int(floor(elapsed_time)) % 30 == 0 or int(ceil(elapsed_time)) % 30 == 0) and int(elapsed_time) != 0:
+            gcp_log(
+                "INFO",
+                f"Job ({keboola_job_id}) status check... Time elapsed: {elapsed_time} seconds.",
+                dict(job_phase=job_phase, details=result_json)
+            )
 
             if 'error' in result_json:
                 kill_job(keboola_endpoint_url,
@@ -277,17 +276,24 @@ def check_job_status(keboola_endpoint_url, keboola_storage_api_token, keboola_jo
                          job_phase_detail="error_response_from_api",
                          error_message=result_json['error'])
                 )
-            if job_status in ["failed", "success"]:
-                if job_status == "failed":
+            if job_status in ["error", "success", "terminated", "cancelled"]:
+                if job_status == "error":
                     return gcp_log(
                         "ERROR",
                         f"The job with id: {keboola_job_id} finished with status: {job_status}.",
                         dict(job_phase=job_phase,
                              job_phase_detail="job_finished", job_status=job_status)
                     )
+                elif job_status in ["terminated", "cancelled"]:
+                    severity = "WARNING"
+                    gcp_log(
+                        "INFO",
+                        f"The job with id: {keboola_job_id} finished with status: {job_status}.",
+                        dict(job_phase=job_phase,
+                             job_phase_detail="job_finished", job_status=job_status)
+                    )
                 else:
-                    severity = "INFO"
-
+                    severity = "NOTICE"
                     gcp_log(
                         "INFO",
                         f"The job with id: {keboola_job_id} finished with status: {job_status}.",
@@ -297,14 +303,18 @@ def check_job_status(keboola_endpoint_url, keboola_storage_api_token, keboola_jo
                 break
 
             time.sleep(10)
+            elapsed_time = int(time.time() - start_time)
 
         # return True
-        if job_status not in ['failed', 'success']:
+        if job_status not in ['error', 'success', "terminated", "cancelled"]:
             kill_job(keboola_endpoint_url,
                      keboola_storage_api_token, keboola_job_id)
             return gcp_log(
                 "ERROR",
-                f"Job with ID: {keboola_job_id} was terminated due to timeout = {keboola_job_max_runtime_seconds} seconds.",
+                f"""
+                    Job with ID: {keboola_job_id} was terminated due to timeout = {keboola_job_max_runtime_seconds} seconds. 
+                    True elapsed_time = {elapsed_time} seconds.
+                """,
                 dict(job_phase=job_phase,
                      job_phase_detail="job_timeout", job_status=job_status)
             )
@@ -332,7 +342,7 @@ def kill_job(keboola_endpoint_url, keboola_storage_api_token, keboola_job_id):
     gcp_log(
         "INFO",
         f"Killing job with ID: {keboola_job_id}.",
-        dict(job_phase="kill_job")
+        dict(job_phase="kill_job", job_id=keboola_job_id)
     )
     try:
         result = requests.post(
@@ -346,7 +356,7 @@ def kill_job(keboola_endpoint_url, keboola_storage_api_token, keboola_job_id):
             gcp_log(
                 "INFO",
                 f"Job with ID: {keboola_job_id} killed successfully.",
-                dict(job_phase="kill_job")
+                dict(job_phase="kill_job", job_id=keboola_job_id)
             )
             # gcp_log(
             #     "ERROR",
@@ -357,7 +367,7 @@ def kill_job(keboola_endpoint_url, keboola_storage_api_token, keboola_job_id):
                 "ERROR",
                 f"Failed to kill job with ID: {keboola_job_id}. Status Code: {result.status_code}",
                 dict(job_phase="kill_job",
-                     error_message=f"{result.json().error}")
+                     error_message=f"{result.json()['error']}", job_id=keboola_job_id)
             )
             # print(
             #     f"Failed to kill job {keboola_job_id}. Status Code: {result.status_code}")
@@ -367,5 +377,6 @@ def kill_job(keboola_endpoint_url, keboola_storage_api_token, keboola_job_id):
         return gcp_log(
             "ERROR",
             f"Failed to kill job with ID: {keboola_job_id}.",
-            dict(job_phase="kill_job", error_message=f"{e}")
+            dict(job_phase="kill_job",
+                 error_message=f"{e}", job_id=keboola_job_id)
         )
