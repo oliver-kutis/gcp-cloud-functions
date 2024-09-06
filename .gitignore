@@ -1,8 +1,11 @@
 # API TOKEN for Keboola
 api_token.txt
+# Credentials
+credentials.txt
 
 secret.json
 # *.http
+*.conda
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

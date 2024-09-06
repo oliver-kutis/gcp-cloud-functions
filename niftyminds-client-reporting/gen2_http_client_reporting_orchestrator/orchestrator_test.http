@@ -1,4 +1,5 @@
-POST http://127.0.0.1:8080/run 
+# POST http://127.0.0.1:8080/run 
+POST https://europe-west1-niftyminds-client-reporting.cloudfunctions.net/gen2_http_client_reporting_orchestrator
 Content-Type: application/json
 
 {

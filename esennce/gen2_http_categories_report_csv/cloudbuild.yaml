@@ -1,0 +1,24 @@
+steps:
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      [
+        "functions",
+        "deploy",
+        "gen2_http_categories_report_csv",
+        "--gen2",
+        "--allow-unauthenticated",
+        "--entry-point=run",
+        "--region=europe-west1",
+        "--trigger-http",
+        "--runtime=python312",
+        "--timeout=600",
+        "--memory=2Gi",
+        "--cpu=1",
+        "--concurrency=5",
+        "--min-instances=0",
+        "--max-instances=5",
+        "--source=.",
+      ]
+    dir: "esennce/gen2_http_categories_report_csv"
+options:
+  logging: CLOUD_LOGGING_ONLY

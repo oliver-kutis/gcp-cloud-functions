@@ -1,0 +1,10 @@
+POST http://127.0.0.1:8080/run 
+Content-Type: application/json
+
+{
+    "login": "looker",
+    "password": "PASSWORD",
+    "project": "esennce",
+    "dataset": "erp_data",
+    "table": "categories_table"
+}
