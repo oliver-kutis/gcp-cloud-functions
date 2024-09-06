@@ -1,4 +1,4 @@
-# import functions_framework
+import functions_framework
 import requests
 # Import HTTP basic auth from requests
 from requests.auth import HTTPBasicAuth
@@ -24,9 +24,8 @@ cols = [
     'TrzbaHruba',
 ]
 
-# @functions_framework.http
 
-
+@functions_framework.http
 def run(request):
     gcp_log(
         "NOTICE",
