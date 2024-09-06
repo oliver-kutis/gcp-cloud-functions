@@ -40,12 +40,12 @@ def run(request):
     dataset = body['dataset']
     table = body['table']
 
-    try:
-        # Create auth
-        auth = HTTPBasicAuth(login, password)
-        global_df = pd.DataFrame()
+    # Create auth
+    auth = HTTPBasicAuth(login, password)
+    global_df = pd.DataFrame()
 
-        for url in report_urls:
+    for url in report_urls:
+        try:
             response = requests.get(url, auth=auth)
             content = response.content.decode('utf-8')
             if response.status_code != 200:
@@ -58,39 +58,39 @@ def run(request):
                 )
             # cr = csv.reader(content.splitlines(), delimiter=';')
 
-    except Exception as e:
-        return gcp_log(
-            "ERROR",
-            f"Error while while downloading data. Exception: {e}",
-            dict(
-                error_message=f"{e}",
+        except Exception as e:
+            return gcp_log(
+                "ERROR",
+                f"Error while while downloading data. Exception: {e}",
+                dict(
+                    error_message=f"{e}",
+                )
             )
-        )
 
-    try:
-        df = pd.read_csv(StringIO(content), delimiter=';')
-        # response.raise_for_status()
-        # df = pd.read_csv(response.content.decode('utf-8'))
+        try:
+            df = pd.read_csv(StringIO(content), delimiter=';')
+            # response.raise_for_status()
+            # df = pd.read_csv(response.content.decode('utf-8'))
 
-        print(f"Downloaded: {url} - {df.shape[0]} rows")
-        global_df = pd.concat([global_df, df])
+            print(f"Downloaded: {url} - {df.shape[0]} rows")
+            global_df = pd.concat([global_df, df])
 
-        global_df.columns = cols
-        global_df_json = global_df.to_json(orient='records')
-        global_df_json = json.loads(global_df_json)
+            global_df.columns = cols
+            global_df_json = global_df.to_json(orient='records')
+            global_df_json = json.loads(global_df_json)
 
-        gcp_log("INFO", "Starting load to bigquery", dict())
-        insert_data_into_bigquery(
-            global_df_json, project, dataset, table)
+            gcp_log("INFO", "Starting load to bigquery", dict())
+            insert_data_into_bigquery(
+                global_df_json, project, dataset, table)
 
-    except Exception as e:
-        return gcp_log(
-            "ERROR",
-            f"Error while processing / loading data to bigquery. Exception: {e}",
-            dict(
-                error_message=f"{e}",
+        except Exception as e:
+            return gcp_log(
+                "ERROR",
+                f"Error while processing / loading data to bigquery. Exception: {e}",
+                dict(
+                    error_message=f"{e}",
+                )
             )
-        )
 
     return gcp_log("NOTICE", "----- Function finished successfully -----", dict())
 
