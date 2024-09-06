@@ -324,7 +324,7 @@ def build_logs_url(base_logs_url, execution_id, pipeline_phase, project, complet
 
     # Append severity condition if complete is False
     if not complete:
-        query += "\nseverity > \"WARNING\""
+        query += "\nseverity >= \"WARNING\""
 
     # URL encode the query string
     encoded_query = urllib.parse.quote(query)
