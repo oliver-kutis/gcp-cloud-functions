@@ -7,16 +7,9 @@ import json
 # from google.colab import auth
 # auth.authenticate_user()
 
-# UPGates API credentials
-UPGATES_LOGIN = "09348859"
-UPGATES_API_KEY = "dKfhVNHiGlghQRpnMYe4"
-UPGATES_API_URL = "https://monkey-mum.admin.s12.upgates.com/api/v2/orders"
-
 DEFAULTS_ARG_VALUES = {
     "start_date": "2022-01-01",
     "end_date": None,
-    # 'keboola_endpoint_url': 'https://queue.north-europe.azure.keboola.com',
-    # 'keboola_job_max_runtime_seconds': 360,
 }
 GLOBAL_LOG_FIELDS = {
     # 'pipeline_phase': 'ERP - Upgates - Orders'
@@ -31,12 +24,6 @@ FUNCTION_ARGS = {
 BIGQUERY_CONFIG_ARGS = [
     'project_id', 'dataset_id', 'table_id',  # 'schema_storage_location'
 ]
-
-
-# FUNCTION_ARGS = {
-#     "required": ['execution_id', 'keboola_orchestration_trigger_run_id', 'client_name', 'keboola_storage_api_token'],
-#     "optional": ['keboola_job_max_runtime_seconds', 'keboola_endpoint_url']
-# }
 
 inputs_dict = dict()
 
