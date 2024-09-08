@@ -65,6 +65,9 @@ def run(request):
     )
 
     get_orders_result = get_orders(
+        upgates_login=inputs_dict['upgates_login'],
+        upgates_api_url=inputs_dict['upgates_api_url'],
+        upgates_api_key=inputs_dict['upgates_api_key'],
         start_date=inputs_dict['start_date'], end_date=inputs_dict['end_date'])
 
     if (get_orders_result[1] == 400):
@@ -180,13 +183,13 @@ def insert_data_into_bigquery(data, bq_config):
                        dict(error_message=f"{e}"))
 
 
-def get_orders(start_date=None, end_date=None):
+def get_orders(upgates_login, upgates_api_key, upgates_api_url, start_date=None, end_date=None):
     """
       Fetch orders from Upgates API between given start and end dates.
     """
     try:
         # Create authentication
-        auth_header = HTTPBasicAuth(UPGATES_LOGIN, UPGATES_API_KEY)
+        auth_header = HTTPBasicAuth(upgates_login, upgates_api_key)
         # API params for start and end dates
         params = {
             "creation_time_from": start_date,
@@ -205,7 +208,7 @@ def get_orders(start_date=None, end_date=None):
         try:
             # Make an initial API call to get the number of pages
             response = requests.get(
-                UPGATES_API_URL, auth=auth_header, params=params)
+                upgates_api_url, auth=auth_header, params=params)
 
             # Handle API response
             if response.status_code == 200:
@@ -252,7 +255,7 @@ def get_orders(start_date=None, end_date=None):
             params['page'] = page
             # Make the API call
             response = requests.get(
-                UPGATES_API_URL, auth=auth_header, params=params)
+                upgates_api_url, auth=auth_header, params=params)
             # Handle API response
             if response.status_code == 200:
                 # Extract data from the response
