@@ -129,6 +129,7 @@ def run(request):
             execution_id=GLOBAL_LOG_FIELDS['execution_id'],
             slack_oauth_token=inputs_dict['slack_notification']['slack_oauth_token'],
             error_params={
+                "testing": GLOBAL_LOG_FIELDS['testing'],
                 "start_datetime": start_datetime,
                 "pipeline_component": component_name_map['keboola_trigger'],
                 "job_phase": component_error_details['job_phase'],
@@ -213,6 +214,7 @@ def run(request):
             execution_id=GLOBAL_LOG_FIELDS['execution_id'],
             slack_oauth_token=inputs_dict['slack_notification']['slack_oauth_token'],
             error_params={
+                "testing": GLOBAL_LOG_FIELDS['testing'],
                 "start_datetime": start_datetime,
                 "pipeline_component": component_name_map['dataform_trigger'],
                 "job_phase": component_error_details['job_phase'],
@@ -448,6 +450,15 @@ def send_slack_notification(client_name, execution_id, slack_oauth_token, error_
         }
     ]
 
+    if error_params['testing']:
+        blocks.insert(0, {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"⚠️ This is a test execution"
+            }
+        })
+
     response = requests.post(
         CLOUD_FUNCTION_URLS['slack_notification'],
         json={
@@ -469,6 +480,20 @@ def check_request_args(request):
     inputs_dict = dict()
     additional_log_fields = dict(
         job_phase="check_request_args", error_type="Orchestator error")
+
+    # Get the request origin and log it
+    gcp_log(
+        "INFO",
+        f"Request.host: {request.host}; Request.host_url: {request.host_url};Request.origin: {request.origin}",
+        additional_log_fields
+    )
+
+    if 'cloudfunctions' not in request.host_url:
+        GLOBAL_LOG_FIELDS['testing'] = True
+    else:
+        GLOBAL_LOG_FIELDS['testing'] = False
+
+    job_phase = "check_request_args"
 
     # Log that the check of args started
     gcp_log(

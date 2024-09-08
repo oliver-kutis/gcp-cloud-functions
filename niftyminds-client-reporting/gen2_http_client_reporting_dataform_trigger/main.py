@@ -59,7 +59,7 @@ def run(request):
     invocation_result = create_workflow_invocation(
         compilation_name, inputs_dict)
     if invocation_result[1] == 400:
-        return invocation_result[0]
+        return invocation_result
     else:
         invocation_name = invocation_result[0]
 
@@ -67,7 +67,7 @@ def run(request):
     execution_result = check_workflow_execution_result(
         invocation_name, inputs_dict)
     if execution_result[1] == 400:
-        return execution_result[0]
+        return execution_result
     else:
         message = f"----- Function finished for client: '{inputs_dict['client_name']}' and repostiory: '{inputs_dict['dataform_repo_name']}' -----",
         gcp_log(

@@ -1,0 +1,17 @@
+POST http://127.0.0.1:8080/run 
+Content-Type: application/json
+
+{
+    "pipeline_phase": "ERP - Upgates - Orders",
+    "execution_id": "123456789",
+    "client_name": "monkeymum",
+    "upgates_api_url": "https://monkey-mum.admin.s12.upgates.com/api/v2/orders",
+    "upgates_login": "login",
+    "upgates_api_key": "TOKEN",
+    "start_date": "2022-01-01", 
+    "bigquery_config": {
+        "project_id": "monkeymum",
+        "dataset_id": "l0_upgates",
+        "table_id": "in_orders"
+    }
+}
