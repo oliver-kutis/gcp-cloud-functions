@@ -4,6 +4,7 @@ import requests
 import urllib.parse
 import json
 import datetime
+import pytz
 
 CLOUD_FUNCTION_URLS = {
     "keboola_trigger": "https://europe-west1-niftyminds-client-reporting.cloudfunctions.net/gen2_http_client_reporting_keboola_orchestrationV2_trigger",
@@ -63,7 +64,9 @@ def run(request):
     or times out, the function returns "Bad".
     """
     base_logs_url = "https://console.cloud.google.com/logs/query"
-    start_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    prague_tz = pytz.timezone("Europe/Prague")
+    start_datetime = datetime.datetime.now(
+        prague_tz).strftime("%Y-%m-%d %H:%M:%S")
     inputs_dict = dict()
     component_name_map = dict()
     for key in FUNCTION_ARGS:
@@ -253,15 +256,15 @@ def run(request):
                 }
             )
 
-            return gcp_log(
-                "ERROR",
-                message,
-                {
-                    "component_error_details": component_error_details,
-                    "job_phase": component_name_map['dataform_trigger'],
-                    "job_phase_detail": "run_component"
-                }
-            )
+        return gcp_log(
+            "ERROR",
+            message,
+            {
+                "component_error_details": component_error_details,
+                "job_phase": component_name_map['dataform_trigger'],
+                "job_phase_detail": "run_component"
+            }
+        )
     else:
         gcp_log(
             "NOTICE",

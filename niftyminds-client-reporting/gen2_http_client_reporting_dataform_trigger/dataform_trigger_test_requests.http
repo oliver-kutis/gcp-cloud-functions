@@ -2,6 +2,8 @@ POST http://127.0.0.1:8080/run
 Content-Type: application/json
 
 {
+    "execution_id": "test_execution_id",
+    "client_name": "monkeymum_com",
     "dataform_repo_name": "monkeymum_com",
     "client_name": "monkeymum_com",
     "git_commitish": "development"
