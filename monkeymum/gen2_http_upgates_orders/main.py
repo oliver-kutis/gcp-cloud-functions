@@ -15,8 +15,7 @@ GLOBAL_LOG_FIELDS = {
     # 'pipeline_phase': 'ERP - Upgates - Orders'
 }
 FUNCTION_ARGS = {
-    "required": ['pipeline_phase', 'execution_id', 'client_name', 'upgates_api_url',
-                 'upgates_login', 'upgates_api_key', 'bigquery_config'],
+    "required": ['upgates_api_url', 'upgates_login', 'upgates_api_key', 'bigquery_config'],
     "optional": ['start_date', 'end_date']
 }
 
@@ -34,9 +33,6 @@ def run(request):
     This function is an HTTP Cloud Function that expects an HTTP POST request with
     a JSON body containing the following parameters:
     {
-        "pipeline_phase": "ERP - Upgates - Orders",
-        "execution_id": "123456789",
-        "client_name": "client_name",
         "upgates_api_url": "https://monkey-mum.admin.s12.upgates.com/api/v2/orders",
         "upgates_login": "123456789",
         "upgates_api_key": "API_KEY",
@@ -92,43 +88,6 @@ def run(request):
 
     return "Function finished."
 
-
-# def insert_data_into_bigquery(data, project_id, dataset_id, table_id):
-#     """Insert a list of dictionaries into BigQuery, creating the table if it doesn't exist."""
-
-#     # Initialize BigQuery client
-#     client = bigquery.Client(project=project_id)
-
-#     # Define the dataset and table references
-#     dataset_ref = client.dataset(dataset_id)
-#     table_ref = dataset_ref.table(table_id)
-
-#     # Check if the table exists
-#     try:
-#         table = client.get_table(table_ref)
-#         print(f"Table {dataset_id}.{table_id} exists.")
-#     except Exception as e:
-#         # If the table does not exist, create it with the predefined schema
-#         print(
-#             f"Table {dataset_id}.{table_id} not found. Creating table with provided schema...")
-
-#         # Create the table with predefined schema
-#         table = bigquery.Table(table_ref, schema=get_bq_schema())
-#         table = client.create_table(table)  # Make an API request.
-#         print(f"Created table {dataset_id}.{table_id}.")
-
-#     # Prepare the job configuration
-#     job_config = bigquery.LoadJobConfig(
-#         schema=get_bq_schema(),  # Use predefined schema with nested fields
-#         # Overwrite the existing data
-#         write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
-#     )
-
-#     # Load data into BigQuery
-#     job = client.load_table_from_json(data, table_ref, job_config=job_config)
-#     job.result()  # Wait for the job to complete
-
-#     print(f"Loaded {job.output_rows} rows into {dataset_id}:{table_id}.")
 
 def insert_data_into_bigquery(data, bq_config):
     """Insert a list of dictionaries into BigQuery, creating the table if it doesn't exist."""
@@ -398,7 +357,6 @@ def gcp_log(severity, message, additional_log_fields=None):
     log_entry = dict(
         severity=severity.upper(),
         message=message,
-        component="Keboola Orchestration-v2 Trigger",
         **additional_log_fields
     )
 
