@@ -4,7 +4,7 @@ Content-Type: application/json
 {
     "upgates_api_url": "https://monkey-mum.admin.s12.upgates.com/api/v2/orders",
     "upgates_login": "login",
-    "upgates_api_key": "api_key"
+    "upgates_api_key": "api_key",
     "start_date": "2024-10-01", 
     "bigquery_config": {
         "project_id": "monkeymum",
