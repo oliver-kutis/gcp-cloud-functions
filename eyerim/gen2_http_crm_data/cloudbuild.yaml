@@ -11,7 +11,7 @@ steps:
         "--region=europe-west1",
         "--trigger-http",
         "--runtime=python312",
-        "--timeout=600",
+        "--timeout=3600",
         "--memory=2Gi",
         "--cpu=1",
         "--concurrency=3",

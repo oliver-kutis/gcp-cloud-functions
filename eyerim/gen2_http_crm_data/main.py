@@ -19,7 +19,7 @@ def run(request):
     try: 
         start_date = datetime.strptime(body['date_from'], "%Y-%m-%d")
         end_date = datetime.strptime(body['date_to'], "%Y-%m-%d")
-        date_ranges = generate_date_ranges(start_date, end_date, 30)
+        date_ranges = generate_date_ranges(start_date, end_date, 10)
 
         # params = {
         #     "date-from": body['date_from'],
@@ -34,11 +34,16 @@ def run(request):
             }
             if 'country' in body:
                 params['country'] = body['country']
-                
+
             headers = {
                 "Authorization": body['auth_token'],
                 "Content-Type": "application/json"
             }
+
+            gcp_log("INFO", 
+                f"Downloading data from {base_url} for date range: {params['date-from']}-{params['date-to']} and country: {params.get('country', None)}", 
+                dict()
+            )
             
             response = requests.get(base_url, params=params, headers=headers)
             if response.status_code != 200:
