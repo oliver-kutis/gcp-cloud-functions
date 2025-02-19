@@ -21,17 +21,20 @@ def run(request):
         end_date = datetime.strptime(body['date_to'], "%Y-%m-%d")
         date_ranges = generate_date_ranges(start_date, end_date, 30)
 
-        params = {
-            "date-from": body['date_from'],
-            "date-to": body['date_to'],
-            "country": body['country'],
-        }
+        # params = {
+        #     "date-from": body['date_from'],
+        #     "date-to": body['date_to'],
+        #     "country": body['country'],
+        # }
+        
         for date_range in date_ranges:
             params = {
                 "date-from": date_range[0].strftime("%Y-%m-%d"),
                 "date-to": date_range[1].strftime("%Y-%m-%d"),
-                "country": body['country'],
             }
+            if 'country' in body:
+                params['country'] = body['country']
+                
             headers = {
                 "Authorization": body['auth_token'],
                 "Content-Type": "application/json"
@@ -41,7 +44,7 @@ def run(request):
             if response.status_code != 200:
                 return gcp_log(
                     "ERROR",
-                    f"Error while downloading data. Status code: {response.status_cde};",
+                    f"Error while downloading data. Status code: {response.status_code};",
                     dict(
                         error_message=f"{response.json()}",
                     )
