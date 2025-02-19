@@ -39,22 +39,17 @@ def run(request):
 
         gcp_log("INFO", f"Downloaded: {base_url} - {len(data)} rows", dict())
 
-        # bq_result = insert_data_into_bigquery(
-        #     data, 
-        #     project_id="datalake-mktg",
-        #     dataset_id="sales_l1",
-        #     table_id="crm_orders"
-        # )
-
-
-        # if (bq_result[1] == 400):
-        #     return bq_result
-
-        gcp_log(
-            "INFO",
-            "----- Function finished -----",
-            dict(input_params=request.get_json(silent=True))
+        bq_result = insert_data_into_bigquery(
+            data, 
+            project_id="datalake-mktg",
+            dataset_id="sales_l1",
+            table_id="crm_orders"
         )
+
+
+        if (bq_result[1] == 400):
+            return bq_result
+
         return gcp_log("NOTICE", "----- Function finished successfully -----", dict())
 
     except Exception as e:
@@ -126,6 +121,7 @@ def get_bq_schema():
     schema = [
         bigquery.SchemaField("OrderId", "INTEGER", mode="REQUIRED"),
         bigquery.SchemaField("OrderStatus", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("OrderDate", "DATETIME", mode="NULLABLE"),
         bigquery.SchemaField("OrderCurrency", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("OrderCountry", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("OrderSource", "STRING", mode="NULLABLE"),
