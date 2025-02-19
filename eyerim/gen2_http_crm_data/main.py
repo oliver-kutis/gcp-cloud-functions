@@ -2,6 +2,7 @@ import functions_framework
 import requests
 from google.cloud import bigquery
 import json
+from datetime import datetime, timedelta
 
 base_url = 'https://eyerim.sk/backend/api/crm-data/'
 
@@ -16,39 +17,53 @@ def run(request):
     body = request.get_json(silent=True)
 
     try: 
+        start_date = datetime.strptime(body['date_from'], "%Y-%m-%d")
+        end_date = datetime.strptime(body['date_to'], "%Y-%m-%d")
+        date_ranges = generate_date_ranges(start_date, end_date, 30)
+
         params = {
             "date-from": body['date_from'],
             "date-to": body['date_to'],
             "country": body['country'],
         }
-        headers = {
-            "Authorization": body['auth_token'],
-            "Content-Type": "application/json"
-        }
-        
-        response = requests.get(base_url, params=params, headers=headers)
-        if response.status_code != 200:
-            return gcp_log(
-                "ERROR",
-                f"Error while downloading data. Status code: {response.status_code};",
-                dict(
-                    error_message=f"{response.json()}",
+        for date_range in date_ranges:
+            params = {
+                "date-from": date_range[0].strftime("%Y-%m-%d"),
+                "date-to": date_range[1].strftime("%Y-%m-%d"),
+                "country": body['country'],
+            }
+            headers = {
+                "Authorization": body['auth_token'],
+                "Content-Type": "application/json"
+            }
+            
+            response = requests.get(base_url, params=params, headers=headers)
+            if response.status_code != 200:
+                return gcp_log(
+                    "ERROR",
+                    f"Error while downloading data. Status code: {response.status_cde};",
+                    dict(
+                        error_message=f"{response.json()}",
+                    )
                 )
+            data = response.json()
+
+            gcp_log("INFO", f"Downloaded: {base_url} - {len(data)} rows", dict())
+
+            table_id = f"_crm_orders_hist_{date_range[0].strftime('%Y%m%d')}_{date_range[1].strftime('%Y%m%d')}"
+            # print(params)
+            # print(table_id)
+            bq_result = insert_data_into_bigquery(
+                data, 
+                project_id="datalake-mktg",
+                dataset_id="sales_l1",
+                # table_id="crm_orders"
+                table_id=table_id
             )
-        data = response.json()
-
-        gcp_log("INFO", f"Downloaded: {base_url} - {len(data)} rows", dict())
-
-        bq_result = insert_data_into_bigquery(
-            data, 
-            project_id="datalake-mktg",
-            dataset_id="sales_l1",
-            table_id="crm_orders"
-        )
 
 
-        if (bq_result[1] == 400):
-            return bq_result
+            if (bq_result[1] == 400):
+                return bq_result
 
         return gcp_log("NOTICE", "----- Function finished successfully -----", dict())
 
@@ -60,6 +75,16 @@ def run(request):
                 error_message=f"{e}",
             )
         )
+
+def generate_date_ranges(start_date, end_date, max_days):
+    """Generate a list of date ranges with a maximum number of days."""
+    date_ranges = []
+    current_start = start_date
+    while current_start < end_date:
+        current_end = min(current_start + timedelta(days=max_days - 1), end_date)
+        date_ranges.append((current_start, current_end))
+        current_start = current_end + timedelta(days=1)
+    return date_ranges
 
 def insert_data_into_bigquery(data, project_id, dataset_id, table_id):
     """Insert a list of dictionaries into BigQuery, creating the table if it doesn't exist."""
