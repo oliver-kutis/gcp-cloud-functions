@@ -4,8 +4,6 @@ from google.cloud import bigquery
 import json
 from datetime import datetime, timedelta
 
-base_url = 'https://eyerim.sk/backend/api/crm-data/'
-
 @functions_framework.http
 def run(request):
     gcp_log(
@@ -17,7 +15,7 @@ def run(request):
     body = request.get_json(silent=True)
     
     # Check params
-    for key in ['date_from', 'date_to', 'auth_token']:
+    for key in ['date_from', 'date_to', 'auth_token', 'endpoint_url']:
         if key not in body:
             return gcp_log(
                 "ERROR",
@@ -33,13 +31,10 @@ def run(request):
         date_ranges = generate_date_ranges(start_date, end_date, 10)
         batches = []
         
-        gcp_log(
-            "INFO",
-            f"---------- Downloading data for{len(date_ranges)} batches ----------"
-            + f"\n\t----- Base date range: {start_date}-{end_date}"
-            + f"\n\t----- Country: {body.get('country', None)}",
-            dict()
-        )
+        gcp_log("INFO", f"---------- Downloading data for {len(date_ranges)} batches ----------", dict())
+        gcp_log("INFO", f"----- Base date range: {body['date_from']} <--> {body['date_to']}", dict())
+        gcp_log("INFO", f"----- Country: {body.get('country', None)}", dict())
+
         # while batch_count < batch_count_total:
             
         #     min_date_start = date_ranges[batch_count][0]
@@ -58,12 +53,11 @@ def run(request):
                 "Content-Type": "application/json"
             }
 
-            gcp_log("INFO", 
-                f"---------- Batch {ix + 1} ----------"
-                + f"\n Downloading data from {base_url} for"
-                + f"\n\tdate range: {params['date-from']}-{params['date-to']}"
-                + f"\n\tand country: {params.get('country', None)}", 
-                dict(
+            gcp_log("INFO", f"---------- Batch {ix + 1} ----------", dict())
+            gcp_log("INFO", f"Downloading data from {body['endpoint_url']} for", dict())
+            gcp_log("INFO", f"date range: {params['date-from']}-{params['date-to']}", dict())
+            gcp_log("INFO", f"and country: {params.get('country', None)}", dict())
+            gcp_log("INFO", "details", dict(
                     batch_count = ix + 1,
                     date_from = params['date-from'],
                     date_to = params['date-to'],
@@ -71,7 +65,7 @@ def run(request):
                 )
             )
             
-            response = requests.get(base_url, params=params, headers=headers)
+            response = requests.get(body['endpoint_url'], params=params, headers=headers)
             if response.status_code != 200:
                 return gcp_log(
                     "ERROR",
