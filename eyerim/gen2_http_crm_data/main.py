@@ -15,19 +15,37 @@ def run(request):
     )
     # Get token and query params from request
     body = request.get_json(silent=True)
-
+    
+    # Check params
+    for key in ['date_from', 'date_to', 'auth_token']:
+        if key not in body:
+            return gcp_log(
+                "ERROR",
+                f"Missing '{key}' in request body.",
+                dict(input_params=body)
+            )
+    start_date = datetime.strptime(body['date_from'], "%Y-%m-%d")
+    end_date = datetime.strptime(body['date_to'], "%Y-%m-%d")
     try: 
-        start_date = datetime.strptime(body['date_from'], "%Y-%m-%d")
-        end_date = datetime.strptime(body['date_to'], "%Y-%m-%d")
+        # batch_count_total = len(date_ranges)
+        # batch_max_iters = min(10, batch_count_total) # 100 days
+        # batch_count = 0
         date_ranges = generate_date_ranges(start_date, end_date, 10)
-
-        # params = {
-        #     "date-from": body['date_from'],
-        #     "date-to": body['date_to'],
-        #     "country": body['country'],
-        # }
+        batches = []
         
-        for date_range in date_ranges:
+        gcp_log(
+            "INFO",
+            f"---------- Downloading data for{len(date_ranges)} batches ----------"
+            + f"\n\t----- Base date range: {start_date}-{end_date}"
+            + f"\n\t----- Country: {body.get('country', None)}",
+            dict()
+        )
+        # while batch_count < batch_count_total:
+            
+        #     min_date_start = date_ranges[batch_count][0]
+        #     max_date_end= date_ranges[batch_count][1]
+
+        for ix, date_range in enumerate(date_ranges):
             params = {
                 "date-from": date_range[0].strftime("%Y-%m-%d"),
                 "date-to": date_range[1].strftime("%Y-%m-%d"),
@@ -41,8 +59,16 @@ def run(request):
             }
 
             gcp_log("INFO", 
-                f"Downloading data from {base_url} for date range: {params['date-from']}-{params['date-to']} and country: {params.get('country', None)}", 
-                dict()
+                f"---------- Batch {ix + 1} ----------"
+                + f"\n Downloading data from {base_url} for"
+                + f"\n\tdate range: {params['date-from']}-{params['date-to']}"
+                + f"\n\tand country: {params.get('country', None)}", 
+                dict(
+                    batch_count = ix + 1,
+                    date_from = params['date-from'],
+                    date_to = params['date-to'],
+                    country = params.get('country', None)
+                )
             )
             
             response = requests.get(base_url, params=params, headers=headers)
@@ -54,25 +80,24 @@ def run(request):
                         error_message=f"{response.json()}",
                     )
                 )
+            
             data = response.json()
+            batches.extend(data)
+            gcp_log("INFO", f"Downloaded {len(data)} rows", dict())
+            # batch_count += 1
+            
+        table_id = "_incr_crm_orders"
+        bq_result = insert_data_into_bigquery(
+            batches, 
+            project_id="datalake-mktg",
+            dataset_id="sales_l1",
+            table_id=table_id
+        )
 
-            gcp_log("INFO", f"Downloaded: {base_url} - {len(data)} rows", dict())
+        if (bq_result[1] == 400):
+            return bq_result
 
-            table_id = f"_crm_orders_hist_{date_range[0].strftime('%Y%m%d')}_{date_range[1].strftime('%Y%m%d')}"
-            # print(params)
-            # print(table_id)
-            bq_result = insert_data_into_bigquery(
-                data, 
-                project_id="datalake-mktg",
-                dataset_id="sales_l1",
-                # table_id="crm_orders"
-                table_id=table_id
-            )
-
-
-            if (bq_result[1] == 400):
-                return bq_result
-
+        gcp_log("INFO", f"Written {len(batches)} rows to {table_id}", dict())
         return gcp_log("NOTICE", "----- Function finished successfully -----", dict())
 
     except Exception as e:
