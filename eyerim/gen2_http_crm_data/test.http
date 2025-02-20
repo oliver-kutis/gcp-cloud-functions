@@ -2,7 +2,7 @@ POST http://127.0.0.1:8080/run
 Content-Type: application/json
 
 {
-    "endpoint_url": "https://eyerim.sk/backend/api/crm-data",
+    "endpoint_url": "ENDPOINT_URL",
     "auth_token": "AUTH_TOKEN",
     "date_to": "2025-02-17",
     "date_from": "2025-01-01",
