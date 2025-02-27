@@ -177,6 +177,7 @@ def get_bq_schema():
         bigquery.SchemaField("OrderCurrency", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("OrderCountry", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("OrderSource", "STRING", mode="NULLABLE"),
+        bigquery.SchemaField("OrderPromoCode", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("ProductLine", "STRING", mode="NULLABLE"),
         bigquery.SchemaField("ProductLineRevenue", "FLOAT", mode="NULLABLE"),
         bigquery.SchemaField("ProductLineGrossMargin", "FLOAT", mode="NULLABLE"),
