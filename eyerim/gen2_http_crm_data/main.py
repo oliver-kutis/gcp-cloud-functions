@@ -123,7 +123,7 @@ def generate_date_ranges(start_date, end_date, max_days):
     while current_start < end_date:
         current_end = min(current_start + timedelta(days=max_days), end_date)
         date_ranges.append((current_start, current_end))
-        current_start = current_end + timedelta(days=1)
+        current_start = current_end  # + timedelta(days=1)
     return date_ranges
 
 
