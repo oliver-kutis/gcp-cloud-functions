@@ -410,6 +410,16 @@ def get_bq_schema():
         bigquery.SchemaField("invoice_number", "STRING"),
         bigquery.SchemaField("origin", "STRING"),
         bigquery.SchemaField("admin_url", "STRING"),
+        # Nested 'dimensions' object
+        bigquery.SchemaField(
+            "dimensions",
+            "RECORD",
+            fields=[
+                bigquery.SchemaField("width", "FLOAT"),
+                bigquery.SchemaField("length", "FLOAT"),
+                bigquery.SchemaField("height", "FLOAT"),
+            ],
+        ),
         # Nested 'customer' object
         bigquery.SchemaField(
             "customer",
