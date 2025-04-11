@@ -257,7 +257,10 @@ def get_orders(
         dict(start_date=start_date, end_date=end_date),
     )
 
-    return (orders, 200)
+    # Filter orders to only include fields defined in the schema
+    filtered_orders = filter_orders_by_schema(orders)
+
+    return (filtered_orders, 200)
 
 
 def check_request_args(request):
@@ -659,3 +662,96 @@ def get_bq_schema():
     ]
 
     return schema
+
+
+def filter_orders_by_schema(orders):
+    """
+    Filter orders to only include fields defined in the schema.
+    This prevents errors when the API returns fields that aren't in our schema.
+    """
+    schema = get_bq_schema()
+    filtered_orders = []
+
+    # Create a map of field names to their types and nested fields
+    schema_map = {}
+    for field in schema:
+        field_name = field.name
+        field_type = field.field_type
+        if field.fields:
+            nested_fields = {}
+            for nested_field in field.fields:
+                if nested_field.fields:
+                    sub_nested_fields = {}
+                    for sub_nested_field in nested_field.fields:
+                        sub_nested_fields[sub_nested_field.name] = {
+                            "type": sub_nested_field.field_type,
+                            "mode": sub_nested_field.mode,
+                            "fields": None,
+                        }
+                    nested_fields[nested_field.name] = {
+                        "type": nested_field.field_type,
+                        "mode": nested_field.mode,
+                        "fields": sub_nested_fields,
+                    }
+                else:
+                    nested_fields[nested_field.name] = {
+                        "type": nested_field.field_type,
+                        "mode": nested_field.mode,
+                        "fields": None,
+                    }
+            schema_map[field_name] = {
+                "type": field_type,
+                "mode": field.mode,
+                "fields": nested_fields,
+            }
+        else:
+            schema_map[field_name] = {
+                "type": field_type,
+                "mode": field.mode,
+                "fields": None,
+            }
+
+    # Filter each order
+    for order in orders:
+        filtered_order = filter_object_by_schema(order, schema_map)
+        filtered_orders.append(filtered_order)
+
+    return filtered_orders
+
+
+def filter_object_by_schema(obj, schema_map):
+    """
+    Recursively filter an object to only include fields defined in the schema map.
+    """
+    if not isinstance(obj, dict) or not schema_map:
+        return obj
+
+    filtered_obj = {}
+    for key, value in obj.items():
+        if key in schema_map:
+            if schema_map[key]["fields"] and isinstance(value, dict):
+                # Handle nested object
+                filtered_obj[key] = filter_object_by_schema(
+                    value, schema_map[key]["fields"]
+                )
+            elif (
+                schema_map[key]["fields"]
+                and schema_map[key]["mode"] == "REPEATED"
+                and isinstance(value, list)
+            ):
+                # Handle array of objects
+                filtered_list = []
+                for item in value:
+                    if isinstance(item, dict):
+                        filtered_item = filter_object_by_schema(
+                            item, schema_map[key]["fields"]
+                        )
+                        filtered_list.append(filtered_item)
+                    else:
+                        filtered_list.append(item)
+                filtered_obj[key] = filtered_list
+            else:
+                # Handle primitive field
+                filtered_obj[key] = value
+
+    return filtered_obj
