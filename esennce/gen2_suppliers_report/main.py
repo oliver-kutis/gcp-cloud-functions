@@ -165,8 +165,7 @@ def get_bq_schema():
     schema = [
         # Root-level fields
         bigquery.SchemaField("Datum", "DATE"),
-        bigquery.SchemaField("Kategorie", "STRING"),
-        bigquery.SchemaField("Podkategorie", "STRING"),
+        bigquery.SchemaField("Dodavatel", "STRING"),
         bigquery.SchemaField("Trzba", "FLOAT"),
         bigquery.SchemaField("Marze", "FLOAT"),
         bigquery.SchemaField("MarzePropad", "FLOAT"),
