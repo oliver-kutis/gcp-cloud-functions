@@ -13,6 +13,7 @@ from requests.auth import HTTPBasicAuth
 # auth.authenticate_user()
 
 report_urls = [
+    "https://www.esennce.cz/looker_reports/categories_report/2026.csv",
     "https://www.esennce.cz/looker_reports/categories_report/2025.csv",
     "https://www.esennce.cz/looker_reports/categories_report/2024.csv",
     "https://www.esennce.cz/looker_reports/categories_report/2023.csv",
